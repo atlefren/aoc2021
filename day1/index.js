@@ -13,13 +13,10 @@ const getIncreasesPairs = (lst) =>
 
 const main = async () => {
   const testInput = await readFile("testinput.txt", (e) => parseInt(e, 10));
-  console.log(getIncreases(testInput).length === 7);
-
   const input = await readFile("input.txt", (e) => parseInt(e, 10));
-  console.log(getIncreases(input).length === 1446);
-
+  console.log(getIncreases(testInput).length === 7);
+  console.log(getIncreases(input).length);
   console.log(getIncreasesPairs(testInput).length === 5);
-
   console.log(getIncreasesPairs(input).length);
 };
 
