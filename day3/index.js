@@ -22,11 +22,18 @@ const getEpsilonRate = (bits) => toDecimal(eachRow(bits, getLeastCommon));
 
 const task1 = (input) => getGammaRate(input) * getEpsilonRate(input);
 
-const loop = (bits, i, get) => {
-  const mc = get(getRow(bits, i));
-  const r = bits.filter((b) => b[i] === mc);
-  return r.length > 1 ? loop(r, i + 1, get) : toDecimal(r[0]);
-};
+const whereIndexIs = (bits, index, value) =>
+  bits.filter((b) => b[index] === value);
+
+const returnOrContinue = (res, index, get) =>
+  res.length > 1 ? loop(res, index + 1, get) : toDecimal(res[0]);
+
+const loop = (bits, index, get) =>
+  returnOrContinue(
+    whereIndexIs(bits, index, get(getRow(bits, index))),
+    index,
+    get
+  );
 
 const task2 = (input) =>
   loop(input, 0, getMostCommon) * loop(input, 0, getLeastCommon);
