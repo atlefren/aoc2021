@@ -2,13 +2,12 @@ const { run } = require("../run");
 
 const parseDir = (dir) => (["forward", "down"].includes(dir) ? "+" : "-");
 
-const parseInput = (line) => {
-  const [dir, units] = line.split(" ");
-  return {
-    dir: dir === "forward" ? "x" : "y",
-    units: parseInt(`${parseDir(dir)}${units}`, 10),
-  };
-};
+const getInstructions = ([dir, units]) => ({
+  dir: dir === "forward" ? "x" : "y",
+  units: parseInt(`${parseDir(dir)}${units}`, 10),
+});
+
+const parseInput = (line) => getInstructions(line.split(" "));
 
 const drive = (applyCommand) => (instructions) =>
   instructions.reduce(applyCommand, { x: 0, y: 0, aim: 0 });

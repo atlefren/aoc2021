@@ -1,6 +1,6 @@
 const readFile = require("./readFile");
 
-const run = async (parse, task1, task2) => {
+const run = async (parse, task1, task2, runAll = true) => {
   const testInput = await readFile("testinput.txt", parse);
   const input = await readFile("input.txt", parse);
 
@@ -8,9 +8,9 @@ const run = async (parse, task1, task2) => {
     JSON.stringify(
       {
         task1Test: task1(testInput),
-        task1: task1(input),
+        task1: runAll ? task1(input) : "not now",
         task2Test: task2(testInput),
-        task2: task2(input),
+        task2: runAll ? task2(input) : "not now",
       },
       undefined,
       4
