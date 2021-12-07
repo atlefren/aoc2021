@@ -1,28 +1,26 @@
 const { run } = require("../run");
 
-const parsePoint = (p) => {
-  const [x, y] = p.split(",");
-  return { x: parseInt(x, 10), y: parseInt(y, 10) };
-};
+const splitAndParse = (split, parse, names) => (input) =>
+  input
+    .split(split)
+    .reduce((acc, e, i) => ({ ...acc, [names[i]]: parse(e) }), {});
 
-const parseLine = (l) => {
-  const [start, end] = l.split(" -> ");
-  return { start: parsePoint(start), end: parsePoint(end) };
-};
+const parsePoint = splitAndParse(",", (e) => parseInt(e, 10), ["x", "y"]);
+
+const parseLine = splitAndParse(" -> ", parsePoint, ["start", "end"]);
 
 const getCoord = (input, coord) =>
   input.reduce((acc, l) => [...acc, l.start[coord], l.end[coord]], []);
 
-const getExtents = (input) => {
-  const x = getCoord(input, "x");
-  const y = getCoord(input, "y");
-  return {
-    minX: Math.min(...x),
-    maxX: Math.max(...x),
-    minY: Math.min(...y),
-    maxY: Math.max(...y),
-  };
-};
+const getMinMax = (minName, maxName, range) => ({
+  [minName]: Math.min(...range),
+  [maxName]: Math.max(...range),
+});
+
+const getExtents = (input) => ({
+  ...getMinMax("minX", "maxX", getCoord(input, "x")),
+  ...getMinMax("minY", "maxY", getCoord(input, "y")),
+});
 
 const getBbox = (segment) => ({
   xmin: Math.min(segment.start.x, segment.end.x),
@@ -51,13 +49,13 @@ const range = (start, end) =>
 
 const getOverlaps = (input) => {
   const extents = getExtents(input);
-  const board = range(extents.minY, extents.maxY).map((y) =>
-    range(extents.minX, extents.maxX).map((x) =>
-      input.reduce((acc, s) => (coversPoint({ x, y }, s) ? acc + 1 : acc), 0)
+  return range(extents.minY, extents.maxY)
+    .map((y) =>
+      range(extents.minX, extents.maxX).map((x) =>
+        input.reduce((acc, s) => (coversPoint({ x, y }, s) ? acc + 1 : acc), 0)
+      )
     )
-  );
-
-  return board.reduce((acc, l) => acc + l.filter((c) => c >= 2).length, 0);
+    .reduce((acc, l) => acc + l.filter((c) => c >= 2).length, 0);
 };
 
 const task1 = (input) =>
