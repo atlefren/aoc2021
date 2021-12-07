@@ -1,8 +1,8 @@
 const readFile = require("./readFile");
 
-const run = async (parse, task1, task2, runAll = true) => {
-  const testInput = await readFile("testinput.txt", parse);
-  const input = await readFile("input.txt", parse);
+const run = async (parse, task1, task2, runAll = true, split = "\n") => {
+  const testInput = await readFile("testinput.txt", parse, split);
+  const input = await readFile("input.txt", parse, split);
 
   console.log(
     JSON.stringify(
