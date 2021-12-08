@@ -1,5 +1,5 @@
 const { run } = require("../run");
-const { range } = require("../util");
+
 const digits = {
   0: ["a", "b", "c", "e", "f", "g"],
   1: ["c", "f"],
@@ -42,18 +42,17 @@ const parse = splitAndParse("|", parseDigits, ["input", "output"]);
 const task1 = (i) => countInOutput(i);
 
 const findLetters = (digit, used) =>
-  digit.filter((d) => !Object.values(used).includes(d)).join("");
+  digit.filter((d) => !Object.keys(used).includes(d)).join("");
 
 const findCandidates = (digit, input, used) =>
   input
     .filter((i) => i.length === digit.length)
     .map((d) => d.split(""))[0]
-    .filter((d) => !Object.keys(used).includes(d))
-    .join("");
+    .filter((d) => !Object.values(used).includes(d));
 
 const getCandidatesFor = (digit, input, used) => ({
   ...used,
-  [findCandidates(digit, input, used)]: findLetters(digit, used),
+  [findLetters(digit, used)]: findCandidates(digit, input, used),
 });
 
 const findInDict = (dict, compare) =>
@@ -71,46 +70,53 @@ const sort = (l) => [...l.sort()];
 
 const sortStr = (l) => sort(l.split("")).join("");
 
-const analyseLine = (line) => {
-  const easy = [1, 7, 4, 8];
+const getDigit = (d) => digits[d].join("");
 
-  const dict = easy.reduce(
-    (acc, i) => getCandidatesFor(digits[i], line.input, acc),
-    {}
-  );
+const getDictionaryForUniqueNumbers = (input) =>
+  [1, 7, 4, 8].reduce((acc, i) => getCandidatesFor(digits[i], input, acc), {});
 
-  const r = reverse(dict);
+const getElement = (dict, input, d) => ({
+  exclude: (digit) =>
+    getElement(
+      dict,
+      input,
+      d.filter((l) => !dict[getDigit(digit)].includes(l))
+    ),
+  withCount: (count) =>
+    getElement(
+      dict,
+      input,
+      d.filter((l) => countLetter(input, l) === count)
+    ),
+  res: () => d[0],
+});
 
-  const used = [...new Set([...r["acf"].split(""), ...r["bcdf"].split("")])];
+const element = (dict, input, digit) =>
+  getElement(dict, input, dict[getDigit(digit)]);
 
-  const a = r["acf"].split("").find((l) => !r["cf"].split("").includes(l));
-  const b = r["bcdf"]
-    .split("")
-    .filter((l) => !r["cf"].split("").includes(l))
-    .find((l) => countLetter(line.input, l) === 6);
-  const f = r["cf"].split("").find((l) => countLetter(line.input, l) === 9);
-  const c = r["cf"].split("").find((l) => l !== f);
-  const d = r["bcdf"]
-    .split("")
-    .find((l) => l !== b && !r["cf"].split("").includes(l));
-  const e = "abcdefg"
-    .split("")
-    .find((l) => !used.includes(l) && countLetter(line.input, l) === 4);
-  const g = "abcdefg"
-    .split("")
-    .find((l) => !used.includes(l) && countLetter(line.input, l) === 7);
-
-  const alphabet = reverse({
-    a,
-    b,
-    c,
-    d,
-    e,
-    f,
-    g,
+const getAlphabet = (input, dict) =>
+  reverse({
+    // a is the part of 7 that is not in 1
+    a: element(dict, input, 7).exclude(1).res(),
+    //b is the segment in 4, which is not part of 1 and is used 6 times
+    b: element(dict, input, 4).exclude(1).withCount(6).res(),
+    //and c is the part of 1 that is used 8 times
+    c: element(dict, input, 1).withCount(8).res(),
+    //d is the part of 4 that is not used by 1 and is used 7 times
+    d: element(dict, input, 4).exclude(1).withCount(7).res(),
+    //e is the segment not used by 7 and 4, which is used 4 times
+    e: element(dict, input, 8).exclude(7).exclude(4).withCount(4).res(),
+    //f is the part of 1 that is used 9 times
+    f: element(dict, input, 1).withCount(9).res(),
+    //g is the segment not used by 7 and 4, which is used 7 times
+    g: element(dict, input, 8).exclude(7).exclude(4).withCount(7).res(),
   });
 
-  const meh = line.input.reduce(
+const translate = (output, dictionary) =>
+  parseInt(output.map((l) => dictionary[sortStr(l)]).join(""), 10);
+
+const buildDictionary = (input, alphabet) =>
+  input.reduce(
     (acc, l) => ({
       ...acc,
       [sortStr(l)]: lookup(
@@ -120,8 +126,14 @@ const analyseLine = (line) => {
     {}
   );
 
-  return parseInt(line.output.map((l) => meh[sortStr(l)]).join(""), 10);
-};
+const analyseLine = (line) =>
+  translate(
+    line.output,
+    buildDictionary(
+      line.input,
+      getAlphabet(line.input, getDictionaryForUniqueNumbers(line.input))
+    )
+  );
 
 const task2 = (i) => i.reduce((acc, l) => acc + analyseLine(l), 0);
 
