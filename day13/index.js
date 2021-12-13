@@ -7,8 +7,6 @@ const parseFold = (fold) =>
     .split("=")
     .map((e, i) => (i == 1 ? parseInt(e, 10) : e));
 
-const p2 = (input) => parse(input.split("\n"));
-
 const parse = (input) => ({
   dots: input
     .slice(0, input.indexOf(""))
@@ -21,21 +19,20 @@ const print = (m) => m.reduce((acc, l) => acc + l.join("") + "\n", "");
 const hasDot = (dots, i, j) =>
   dots.find((d) => d[0] === i && d[1] === j) !== undefined;
 
-const toArr = (dots) => {
-  const width = Math.max(...dots.map((d) => d[0])) + 1;
-  const height = Math.max(...dots.map((d) => d[1])) + 1;
+const getHeight = (dots) => Math.max(...dots.map((d) => d[1])) + 1;
+const getWidth = (dots) => Math.max(...dots.map((d) => d[0])) + 1;
 
-  return range(height).reduce(
+const toArr = (dots) =>
+  range(getHeight(dots)).reduce(
     (acc, j) => [
       ...acc,
-      range(width).reduce(
-        (acc, i) => [...acc, hasDot(dots, i, j) ? "#" : "."],
+      range(getWidth(dots)).reduce(
+        (acc, i) => [...acc, hasDot(dots, i, j) ? "#" : " "],
         []
       ),
     ],
     []
   );
-};
 
 const flipy = (dots) => dots.reverse();
 
@@ -73,4 +70,4 @@ const task2 = (input) =>
     print(input.folds.reduce((acc, f) => applyFold(f, acc), toArr(input.dots)))
   );
 
-run(p2, task1, task2, false, "");
+run((input) => parse(input.split("\n")), task1, task2, true, "");
