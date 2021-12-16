@@ -1,0 +1,141 @@
+const { run } = require("../run");
+const { range } = require("../util");
+const parse = (i) => i;
+
+const sumVersions = (packet) =>
+  packet.version + packet.subs.reduce((acc, p) => acc + sumVersions(p), 0);
+
+const mapping = {
+  0: "0000",
+  1: "0001",
+  2: "0010",
+  3: "0011",
+  4: "0100",
+  5: "0101",
+  6: "0110",
+  7: "0111",
+  8: "1000",
+  9: "1001",
+  A: "1010",
+  B: "1011",
+  C: "1100",
+  D: "1101",
+  E: "1110",
+  F: "1111",
+};
+
+const hex2bin = (hex) =>
+  hex
+    .split("")
+    .map((h) => mapping[h])
+    .join("");
+
+const parseBits = (binary) => {
+  const { version, typeId } = parseHeader(binary);
+  //console.log("\n\n");
+  console.log("parseBits", binary);
+  console.log(typeId);
+  return {
+    version,
+    typeId,
+    value: typeId === 4 ? parseLiteral(binary.slice(6)) : null,
+    subs: typeId !== 4 ? parseOperator(binary.slice(6)) : [],
+  };
+};
+
+const getSubPacketsType0 = (bits) => {
+  const length = 15;
+  const subPacketLength = parseInt(bits.slice(1, length + 1), 2);
+
+  const subPackets = bits.slice(length + 1, length + 1 + subPacketLength);
+  console.log(subPackets);
+
+  /*
+  
+  //console.log("subPacketLength", subPacketLength);
+
+  
+  const num11 = Math.floor(subPackets.length / 11) - 1;
+  const length11 = num11 * 11;
+  const lastLength = subPacketLength - length11;
+
+  //console.log(num11, lastLength);
+
+  return [
+    ...range(Math.floor(num11))
+      .map((i) => i * 11)
+      .map((i) => subPackets.slice(i, i + 11)),
+    subPackets.slice(length11, length11 + lastLength),
+  ].map(parseBits);
+  */
+};
+
+const reverse = (s) => s.split("").reverse().join("");
+
+const getSubPackets = (bits, numSubPackets) => {
+  const numTrailing = reverse(bits).indexOf("1");
+  const packetLength = (bits.length - numTrailing) / numSubPackets;
+
+  const packetBits = bits.slice(0, numSubPackets * packetLength);
+  return range(numSubPackets)
+    .map((i) => i * packetLength)
+    .map((i) => packetBits.slice(i, i + packetLength));
+};
+
+const getSubPacketsType1 = (bits) => {
+  //console.log("type1");
+  //console.log(bits);
+  const length = 11;
+  const numSubPackets = parseInt(bits.slice(1, length + 1), 2);
+  console.log("numSubPackets", numSubPackets);
+
+  const subs = getSubPackets(bits.slice(length + 1), numSubPackets);
+
+  return subs.map(parseBits);
+};
+
+const parseOperator = (bits) => {
+  //console.log(bits);
+  return bits[0] === "0" ? getSubPacketsType0(bits) : getSubPacketsType1(bits);
+
+  /*
+  console.log(
+    range(Math.floor(subPackets.length / 11))
+      .map((i) => i * 11)
+      .map((i) => subPackets.slice(i, i + 11))
+  );*/
+};
+
+const parseLiteral = (bits) =>
+  parseInt(
+    range(Math.floor(bits.length / 5))
+      .map((i) => i * 5)
+      .map((i) => bits.slice(i, i + 5))
+      .map((b) => b.slice(1))
+      .join(""),
+    2
+  );
+
+const parseHeader = (bits) => ({
+  version: parseInt(bits.slice(0, 3), 2),
+  typeId: parseInt(bits.slice(3, 6), 2),
+});
+
+const task1 = (bits) => {
+  const packet = parseBits(hex2bin(bits));
+  //console.log("\n\n");
+  console.log(JSON.stringify(packet, null, 4));
+  //return sumVersions(packet);
+};
+
+const task2 = (input) => {};
+
+console.log(task1("D2FE28"));
+//console.log(task1("38006F45291200") === 9);
+
+//console.log(task1("EE00D40C823060") === 14);
+//console.log(task1("8A004A801A8002F478") === 16);
+
+//console.log(task1("620080001611562C8802118E34") === 12);
+
+//run(parse, task1, task2, false);
