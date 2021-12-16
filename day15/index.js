@@ -15,12 +15,16 @@ const getElement2d = (lst, i, j) => getElement(getElement(lst, i), j);
 
 const print = (i, j) => `${i}_${j}`;
 
-const getNode = (input, i, j, value) => {
-  return {
-    [print(i, j + 1)]: getElement2d(input, i, j + 1),
-    [print(i + 1, j)]: getElement2d(input, i + 1, j),
-  };
-};
+const getNode = (input, i, j) =>
+  [
+    [i, j + 1],
+    [i, j - 1],
+    [i + 1, j],
+    [i - 1, j],
+  ].reduce(
+    (acc, [i, j]) => ({ ...acc, [print(i, j)]: getElement2d(input, i, j) }),
+    {}
+  );
 
 const getMap = (input) =>
   input.reduce(
@@ -34,57 +38,36 @@ const getMap = (input) =>
     {}
   );
 
-const getCost = (input, val) => {
-  const [i, j] = val.split("_").map((v) => parseInt(v, 10));
-  return input[i][j];
-};
+const getCost = (input, val) =>
+  getElement2d(input, ...val.split("_").map((v) => parseInt(v, 10)));
 
 const cost = (p, input) =>
   p.slice(1).reduce((acc, e) => acc + getCost(input, e), 0);
 
-const getShortestPathCost = (input) => {
-  const height = input.length - 1;
+const getShortestPathCost = (input) =>
+  cost(
+    new Graph(getMap(input)).findShortestPath(
+      print(0, 0),
+      print(input.length - 1, input.length - 1)
+    ),
+    input
+  );
+const wrapAround = (val) => (val < 10 ? val : (val % 10) + 1);
 
-  const graph = new Graph(getMap(input));
+const getElement2 = (input, i, j) =>
+  wrapAround(
+    input[i % input.length][j % input.length] +
+      Math.floor(i / input.length) +
+      Math.floor(j / input.length)
+  );
 
-  const p = graph.findShortestPath(print(0, 0), print(height, height));
-
-  return cost(p, input);
-};
+const getComplete = (input, times) =>
+  range(input.length * times).map((i) =>
+    range(input.length * times).map((j) => getElement2(input, i, j))
+  );
 
 const task1 = (input) => getShortestPathCost(input);
 
-const printMatrix = (m) => m.reduce((acc, l) => acc + l.join(" ") + "\n", "");
+const task2 = (input) => getShortestPathCost(getComplete(input, 5));
 
-const getElement2 = (input, i, j) => {
-  const jj = j % input.length;
-  const ii = i % input.length;
-  const val = input[ii][jj];
-
-  const timesi = Math.floor(i / input.length);
-  const timesj = Math.floor(j / input.length);
-
-  const times = timesi + timesj;
-
-  const res = val + times;
-  return res < 10 ? res : (res % 10) + 1;
-};
-
-const getComplete = (input, times) => {
-  return range(input.length * times).map((i) =>
-    range(input.length * times).map((j) => getElement2(input, i, j))
-  );
-};
-
-const task2 = (input) => {
-  return getShortestPathCost(getComplete(input, 5));
-
-  //console.log(printMatrix(getComplete([[8]], 5)));
-
-  //console.log(getElement2(input, 4, 0));
-  /*console.log(getElement2(input, 0, 10));
-  console.log(getElement2(input, 10, 0));
-  console.log(getElement2(input, 10, 10));*/
-};
-
-run(parse, task1, task2, true);
+run(parse, task1, task2, false);
