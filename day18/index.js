@@ -93,21 +93,12 @@ const getMagnitude = (pair) =>
 
 const task1 = (input) => getMagnitude(sumList(input));
 
-const task2 = (input) => {
-  let largestMagnitude = 0;
-  for (let l1 = 0; l1 < input.length; l1++) {
-    for (let l2 = 0; l2 < input.length; l2++) {
-      if (l1 === l2) {
-        continue;
-      }
-
-      largestMagnitude = Math.max(
-        largestMagnitude,
-        getMagnitude(add(input[l1], input[l2]))
-      );
-    }
-  }
-  return largestMagnitude;
-};
+const task2 = (input) =>
+  Math.max(
+    ...input.reduce(
+      (acc, p1) => [...acc, ...input.map((p2) => getMagnitude(add(p1, p2)))],
+      []
+    )
+  );
 
 run(parse, task1, task2, true);
