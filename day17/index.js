@@ -94,39 +94,18 @@ const willReach = (initialVelocity, target) => {
 
 const getMaxHeight = (positions) => Math.max(...positions.map((p) => p.y));
 
-const task1 = (input) => {
-  let maxHeight = 0;
-  for (const yVelocity of range(-1000, 1000)) {
-    for (const xVelocity of range(0, 1000)) {
-      const positions = willReach({ x: xVelocity, y: yVelocity }, input);
+const getPossible = (input) =>
+  range(-1000, 1000).reduce(
+    (acc, yVelocity) => [
+      ...acc,
+      ...range(0, 1000)
+        .map((xVelocity) => willReach({ x: xVelocity, y: yVelocity }, input))
+        .filter((r) => r !== null),
+    ],
+    []
+  );
 
-      if (positions) {
-        const h = getMaxHeight(positions);
-
-        if (h > maxHeight) {
-          maxHeight = h;
-        }
-      }
-    }
-  }
-
-  return maxHeight;
-};
-
-const task2 = (input) => {
-  let count = 0;
-
-  for (const yVelocity of range(-1000, 1000)) {
-    for (const xVelocity of range(0, 1000)) {
-      const positions = willReach({ x: xVelocity, y: yVelocity }, input);
-
-      if (positions) {
-        count++;
-      }
-    }
-  }
-
-  return count;
-};
+const task1 = (input) => Math.max(...getPossible(input).map(getMaxHeight));
+const task2 = (input) => getPossible(input).length;
 
 run(parse, task1, task2, true, "");
