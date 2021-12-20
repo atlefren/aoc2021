@@ -31,10 +31,9 @@ const getExplodeIndex = (indicies) =>
   indicies.findIndex((i) => i.path.length >= 4 && Array.isArray(i.val));
 
 const explode = (n, indicies, explodeIdx) => {
-  const path = indicies[explodeIdx].path;
-  const val = indicies[explodeIdx].val;
+  const [leftValue, rightValue] = indicies[explodeIdx].val;
 
-  let arr = setNewVal(n, path, 0);
+  let arr = setNewVal(n, indicies[explodeIdx].path, 0);
 
   const left = indicies
     .slice(0, explodeIdx)
@@ -42,14 +41,14 @@ const explode = (n, indicies, explodeIdx) => {
     .slice(-1)[0];
 
   if (left) {
-    arr = setNewVal(arr, left.path, left.val + val[0]);
+    arr = setNewVal(arr, left.path, left.val + leftValue);
   }
 
   const right = indicies
     .slice(explodeIdx + 3)
     .filter((e) => !Array.isArray(e.val))[0];
   if (right) {
-    arr = setNewVal(arr, right.path, right.val + val[1]);
+    arr = setNewVal(arr, right.path, right.val + rightValue);
   }
 
   return arr;
